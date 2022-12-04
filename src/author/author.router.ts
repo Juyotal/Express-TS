@@ -6,6 +6,7 @@ import * as AuthorService from "./author.service"
 import { request } from "http";
 import { Author } from "@prisma/client";
 import { db } from "../utils/db.server";
+import { resolve } from "path";
 
 export const authorRouter = express.Router();
 
@@ -49,4 +50,24 @@ async(request: Request, response: Response) => {
         return response.status(500).json(error.message);
      }
 })
+
+authorRouter.put(
+    "/:id",
+    body("firstName").isString(),
+    body("lastName").isString(),
+    async(request: Request, response: Response) => {
+        const errors = validationResult(request);
+        if (!errors.isEmpty()) {
+            return response.status(400).json({errors: errors.array() });
+        }
+        const id: number = parseInt(request.params.id, 10)
+        try{
+            const author = request.body
+            const updateAuthor = await AuthorService.updateAuthor(author, id)
+            return response.status(200).json(updateAuthor)
+        } catch (error: any) {
+            return response.status(500).json(error.message);
+        }
+    }
+)
 
